@@ -10,6 +10,9 @@ import * as constants from "../../constants";
 import { isAbilityCardMode } from "./types";
 import { AbilityTestCard } from "./AbilityTestCard";
 import { AttackCard } from "./AttackCard";
+import { AbilityTestMwCard } from "./AbilityTestMwCard";
+import { MWDifficulty } from "../../types";
+import { AbilityNegateOrWallopMwCard } from "./AbilityNegateOrWallopMwCard";
 
 export const installAbilityCardChatWrangler = () => {
   Hooks.on("renderChatMessage", (chatMessage, html, options) => {
@@ -37,13 +40,30 @@ export const installAbilityCardChatWrangler = () => {
       );
       return;
     }
-    if (mode === null || !isAbilityCardMode(mode)) {
+
+    if (!ability)
       logger.error(
-        `Ability test chat message found without a valid '${constants.htmlDataMode}' attribute. (Valid values are "test", "spend", "combat"`,
+        `Missing or invalid '${constants.htmlDataItemId}' attribute.`,
         el,
       );
       return;
     }
+    if (mode === null || !isAbilityCardMode(mode)) {
+        `Missing or invalid '${constants.htmlDataItemId}' attribute.`,
+        el,
+      );
+      return;
+    }
+    if (mode === null || !isAbilityCardMode(mode)) {
+      logger.error(
+        `Invalid '${constants.htmlDataMode}' attribute. (Valid values are "test", "spend", "combat")`,
+        el,
+      );
+      return;
+    }
+
+
+    
     const actor = game.actors?.get(actorId);
     const ability = abilityId ? actor?.items.get(abilityId) : undefined;
     const weapon = weaponId ? actor?.items.get(weaponId) : undefined;
@@ -65,8 +85,70 @@ export const installAbilityCardChatWrangler = () => {
           name={name}
           imageUrl={imageUrl}
         />;
+        
+          ability={ability}
+    let content: JSX.Element;
+    if (mode === constants.htmlDataModeAttack) {
+      // ATTACK!!!!!!
+      const weaponId = el.getAttribute(constants.htmlDataWeaponId);
+      const rangeName = el.getAttribute(constants.htmlDataRange);
+      if (!rangeName) {
+        logger.error(
+          `Missing or invalid '${constants.htmlDataRange}' attribute.`, el,
+        );
+        return;
       }
-      ReactDOM.render(content, el);
+      
+
+
+      
+      const weapon = weaponId ? actor?.items.get(weaponId) : undefined;
+      if (!weapon) {
+        logger.error(
+          `Missing or invalid '${constants.htmlDataWeaponId}' attribute.`, el,
+        );
+        return;
+      }
+      content = <AttackCard
+        msg={chatMessage}
+        ability={ability}
+        weapon={weapon}
+        rangeName={rangeName}
+      />;
+    } else if (mode === constants.htmlDataModeMwTest) {
+      // MW TEST
+      const difficultyAttr = el.getAttribute(constants.htmlDataMwDifficulty);
+      const difficulty: MWDifficulty = difficultyAttr === "easy"
+        ? "easy"
+        : Number(difficultyAttr ?? 0);
+      const boonLevy = Number(el.getAttribute(constants.htmlDataMwBoonLevy) ?? 0);
+      const reRoll = el.getAttribute(constants.htmlDataMwReRoll);
+      const pool = Number(el.getAttribute(constants.htmlDataMwPool));
+      content = <AbilityTestMwCard
+        msg={chatMessage}
+        ability={ability}
+        difficulty={difficulty}
+        boonLevy={boonLevy}
+        reRoll={reRoll ? Number(reRoll) : undefined}
+        pool={pool}
+      />;
+    } else if (mode === constants.htmlDataModeMwWallop || mode === constants.htmlDataModeMwNegate) {
+      // MW NEGATE OR WALLOP
+      const pool = Number(el.getAttribute(constants.htmlDataMwPool));
+      content = <AbilityNegateOrWallopMwCard
+        msg={chatMessage}
+        ability={ability}
+        pool={pool}
+        mode={mode}
+      />;
+    } else {
+      // REGULAR TEST /SPEND
+      content = <AbilityTestCard
+        msg={chatMessage}
+        ability={ability}
+        mode={mode}
+      />;
     }
+    ReactDOM.render(content, el);
   });
 };
