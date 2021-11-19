@@ -107,7 +107,7 @@ export const AbilityMainBits: React.FC<AbilityMainBitsProps> = ({
         />
       </GridField>
       <GridFieldStacked label="Notes">
-        <TextArea
+        <AsyncTextArea
           value={notes.display}
           onChange={notes.onChange}
           css={{

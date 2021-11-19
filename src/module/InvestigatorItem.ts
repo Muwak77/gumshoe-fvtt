@@ -11,6 +11,7 @@ import {
   MWDifficulty,
   MwRefreshGroup,
   MwType,
+  NoteFormat,
   RangeTuple,
 } from "../types";
 import * as constants from "../constants";
@@ -405,7 +406,7 @@ export class InvestigatorItem extends Item {
   }
 
   getNotes = () => {
-    return this.data.data.notes ?? "";
+    return this.data.data.notes ?? { source: "", html: "" };
   }
 
   setNotesFormat = (newFormat: NoteFormat) => {
