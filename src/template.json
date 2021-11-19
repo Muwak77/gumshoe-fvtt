@@ -97,7 +97,7 @@
       }
     },
     "investigativeAbility": {
-      "templates": ["notes", "ability"]
+      "templates": ["notes", "ability"],
       "hideIfZeroRated": true
     },
     "generalAbility": {
